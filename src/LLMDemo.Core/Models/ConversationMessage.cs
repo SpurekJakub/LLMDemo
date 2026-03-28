@@ -1,8 +1,16 @@
-using OpenAI.Chat;
-
 namespace LLMDemo.Core.Models;
+
+/// <summary>
+/// Provider-agnostic message role.
+/// </summary>
+public enum MessageRole
+{
+    System,
+    User,
+    Assistant
+}
 
 /// <summary>
 /// Represents a single message in a conversation.
 /// </summary>
-public sealed record ConversationMessage(ChatMessageRole Role, string Content);
+public sealed record ConversationMessage(MessageRole Role, string Content);

@@ -1,0 +1,26 @@
+{
+  "data": {
+    "directory": ".opencode"
+  },
+  "providers": {
+    "anthropic": {
+      "disabled": true
+    },
+    "openai": {
+      "disabled": true
+    }
+  },
+  "agents": {
+    "coder": {
+      "model": "local.openai/gpt-oss-20b"
+    },
+    "task": {
+      "model": "local.openai/gpt-oss-20b"
+    },
+    "title": {
+      "model": "local.openai/gpt-oss-20b",
+      "maxTokens": 80
+    }
+  },
+  "autoCompact": true
+}

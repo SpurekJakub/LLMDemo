@@ -12,8 +12,8 @@ LLMDemo.sln
 │
 ├── src/
 │   ├── LLMDemo.Core/              # Shared library
-│   │   ├── Abstractions/          # IConceptDemo — contract for all demos
-│   │   ├── Clients/               # ILmStudioClient — OpenAI SDK wrapper for LM Studio
+│   │   ├── Abstractions/          # IConceptDemo, IChatCompletionService
+│   │   ├── Clients/               # LmStudioChatCompletionService (OpenAI SDK → LM Studio)
 │   │   ├── Configuration/         # LmStudioOptions (endpoint, model)
 │   │   ├── Extensions/            # DI registration (AddLlmDemoCore)
 │   │   └── Models/                # Shared DTOs (ConversationMessage, CompletionResult)
@@ -30,14 +30,14 @@ LLMDemo.sln
 
 | Project | Type | Purpose |
 |---|---|---|
-| **LLMDemo.Core** | Class Library | LM Studio client, shared DTOs, `IConceptDemo` contract, DI extensions |
+| **LLMDemo.Core** | Class Library | Provider-agnostic AI service abstraction (`IChatCompletionService`), shared DTOs, `IConceptDemo` contract, DI extensions. LM Studio implementation included. |
 | **LLMDemo** | Console App | CLI host that discovers and runs concept demos via an interactive menu |
 | **LLMDemo.Concept.\*** | Class Library | Individual demo implementations — orchestrations, agents, tools, etc. |
 
 ### Key Abstractions
 
 - **`IConceptDemo`** — Every concept demo implements this. Exposes `Name`, `Description`, and `RunAsync()`.
-- **`ILmStudioClient`** — Chat completion abstraction. Uses the OpenAI .NET SDK pointed at LM Studio's local endpoint.
+- **`IChatCompletionService`** — Provider-agnostic chat completion interface. Concept demos depend on this, not on a specific provider. The default implementation (`LmStudioChatCompletionService`) uses the OpenAI .NET SDK pointed at LM Studio.
 - **`LmStudioOptions`** — Configuration POCO bound from the `LmStudio` section in `appsettings.json`.
 
 ## Prerequisites

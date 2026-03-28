@@ -1,4 +1,5 @@
 using System.ClientModel;
+using LLMDemo.Core.Abstractions;
 using LLMDemo.Core.Configuration;
 using LLMDemo.Core.Models;
 using Microsoft.Extensions.Logging;
@@ -9,15 +10,15 @@ using OpenAI.Chat;
 namespace LLMDemo.Core.Clients;
 
 /// <summary>
-/// LM Studio client that uses the OpenAI .NET SDK pointed at a local endpoint.
+/// Chat completion service backed by LM Studio (OpenAI-compatible endpoint).
 /// </summary>
-public sealed class LmStudioClient : ILmStudioClient
+public sealed class LmStudioChatCompletionService : IChatCompletionService
 {
     private readonly ChatClient _chatClient;
     private readonly LmStudioOptions _options;
-    private readonly ILogger<LmStudioClient> _logger;
+    private readonly ILogger<LmStudioChatCompletionService> _logger;
 
-    public LmStudioClient(IOptions<LmStudioOptions> options, ILogger<LmStudioClient> logger)
+    public LmStudioChatCompletionService(IOptions<LmStudioOptions> options, ILogger<LmStudioChatCompletionService> logger)
     {
         _options = options.Value;
         _logger = logger;
@@ -41,9 +42,9 @@ public sealed class LmStudioClient : ILmStudioClient
         {
             chatMessages.Add(msg.Role switch
             {
-                ChatMessageRole.System => ChatMessage.CreateSystemMessage(msg.Content),
-                ChatMessageRole.User => ChatMessage.CreateUserMessage(msg.Content),
-                ChatMessageRole.Assistant => ChatMessage.CreateAssistantMessage(msg.Content),
+                MessageRole.System => ChatMessage.CreateSystemMessage(msg.Content),
+                MessageRole.User => ChatMessage.CreateUserMessage(msg.Content),
+                MessageRole.Assistant => ChatMessage.CreateAssistantMessage(msg.Content),
                 _ => ChatMessage.CreateUserMessage(msg.Content),
             });
         }
