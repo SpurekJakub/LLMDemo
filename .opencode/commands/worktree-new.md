@@ -1,25 +1,13 @@
 ---
 description: Create a new git worktree for parallel agent work
-agent: build
+agent: llmdemo
 ---
 
-Create a new git worktree for isolated parallel work.
+Create a worktree for: `$ARGUMENTS`
 
-## Steps
-
-1. Pick a branch name from the task description: `$ARGUMENTS`
-   - For concept demos use `concept/<name>`
-   - For features use `feature/<name>`
-   - For fixes use `fix/<name>`
-
-2. Create the worktree from master:
+1. Derive `<NAME>` (kebab-case) and `<TYPE>` (`concept`/`feature`/`fix`) from the arguments.
+2. Run:
    ```bash
-   git worktree add ../LLMDemo-wt-$1 -b <branch-name> master
+   git worktree add ../LLMDemo-wt-<NAME> -b <TYPE>/<NAME> main
    ```
-
-3. Report back:
-   - The full path to the new worktree
-   - The branch name
-   - Instruct the user to: `cd ../LLMDemo-wt-$1 && opencode`
-
-Do NOT start working in the worktree — just create it and report the path. The user will launch a new OpenCode session from there.
+3. Report the worktree path and branch name.
