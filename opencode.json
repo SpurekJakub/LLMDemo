@@ -19,6 +19,7 @@
     }
   },
   "model": "lmstudio/openai/gpt-oss-20b",
+  "permission": "allow",
   "disabled_providers": ["anthropic", "openai"],
   "autoupdate": false
 }
