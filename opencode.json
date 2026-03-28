@@ -21,8 +21,5 @@
   "model": "lmstudio/qwen/qwen3-coder-30b",
   "permission": "allow",
   "disabled_providers": ["anthropic", "openai"],
-  "autoupdate": false,
-  "agent": {
-    "build": { "disable": true }
-  }
+  "autoupdate": false
 }
