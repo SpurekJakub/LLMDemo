@@ -7,19 +7,21 @@ namespace LLMDemo.Concept.ParallelAgentInvocation;
 /// Demo: An orchestrator agent that fans out to sub-agents in parallel via tool-calling.
 /// Ask it for multiple jokes (e.g. "tell me 5 jokes") to see parallel invocation in action.
 /// </summary>
-public sealed class ParallelAgentInvocationDemo : IChatConceptDemo
+public sealed class ParallelAgentInvocationDemo : IConceptDemo
 {
     public string Name => "Parallel Agent Invocation";
-    public string Description => "Orchestrator agent that invokes sub-agents in parallel via tool-calling";
     public string? DefaultPrompt => "Tell me 5 jokes";
 
     private readonly IAgentRunner _orchestratorRunner;
-    private readonly AgentDefinition _orchestratorAgent;
 
     public ParallelAgentInvocationDemo(IAgentRunner agentRunner)
     {
         _orchestratorRunner = agentRunner;
+    }
 
+    /// <inheritdoc/>
+    public Task<CompletionResponse> ProcessAsync(string userMessage, string model, CancellationToken ct = default)
+    {
         // Sub-agent: generates a single random joke
         var jokesAgent = new AgentDefinition(
             Name: "jokes",
@@ -32,11 +34,11 @@ public sealed class ParallelAgentInvocationDemo : IChatConceptDemo
         };
 
         // Tool that the orchestrator uses to invoke sub-agents in parallel.
-        // Sub-agents share the same IAgentRunner (transient; each call is independent).
-        var invokeSubAgentsTool = new InvokeSubAgentsTool(agentRunner, subAgents);
+        // Model is passed so sub-agent calls use the same model.
+        var invokeSubAgentsTool = new InvokeSubAgentsTool(_orchestratorRunner, subAgents, model);
 
         // Orchestrator agent
-        _orchestratorAgent = new AgentDefinition(
+        var orchestratorAgent = new AgentDefinition(
             Name: "orchestrator",
             SystemPrompt: """
                 You are an orchestrator agent. You have access to sub-agents that you can invoke
@@ -52,15 +54,7 @@ public sealed class ParallelAgentInvocationDemo : IChatConceptDemo
                 numbered list.
                 """,
             Tools: [invokeSubAgentsTool]);
+
+        return _orchestratorRunner.RunAsync(orchestratorAgent, userMessage, model, ct);
     }
-
-    /// <inheritdoc/>
-    public Task<string> ProcessMessageAsync(string userMessage, CancellationToken cancellationToken = default)
-        => _orchestratorRunner.RunAsync(_orchestratorAgent, userMessage, cancellationToken);
-
-    /// <summary>
-    /// RunAsync is not used for chat demos — the CLI host calls <see cref="ProcessMessageAsync"/> in a loop.
-    /// </summary>
-    public Task RunAsync(CancellationToken cancellationToken = default)
-        => Task.CompletedTask;
 }

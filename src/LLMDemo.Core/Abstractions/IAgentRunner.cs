@@ -10,10 +10,11 @@ public interface IAgentRunner
 {
     /// <summary>
     /// Execute the agent defined by <paramref name="agent"/> with the given <paramref name="userMessage"/>.
-    /// Returns the agent's final text response.
+    /// Returns an aggregated <see cref="CompletionResponse"/> containing the final text and per-step metrics.
     /// </summary>
-    Task<string> RunAsync(
+    Task<CompletionResponse> RunAsync(
         AgentDefinition agent,
         string userMessage,
+        string model,
         CancellationToken cancellationToken = default);
 }

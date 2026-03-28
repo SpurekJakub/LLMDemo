@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using LLMDemo.Core.Abstractions;
 using LLMDemo.Core.Models;
 using Microsoft.Extensions.Logging;
@@ -6,7 +7,7 @@ namespace LLMDemo.Core.Services;
 
 /// <summary>
 /// Runs a complete agent loop: calls the LLM, handles tool-call turns,
-/// and returns the final text response. Capped at 10 iterations to prevent infinite loops.
+/// and returns the final aggregated <see cref="CompletionResponse"/>. Capped at 10 iterations to prevent infinite loops.
 /// </summary>
 public sealed class AgentRunner : IAgentRunner
 {
@@ -22,9 +23,10 @@ public sealed class AgentRunner : IAgentRunner
     }
 
     /// <inheritdoc/>
-    public async Task<string> RunAsync(
+    public async Task<CompletionResponse> RunAsync(
         AgentDefinition agent,
         string userMessage,
+        string model,
         CancellationToken cancellationToken = default)
     {
         var conversation = new List<ConversationMessage>
@@ -34,6 +36,8 @@ public sealed class AgentRunner : IAgentRunner
         };
 
         var tools = agent.Tools.Select(t => t.Definition).ToList();
+        var steps = new List<CompletionMetrics>();
+        var totalSw = Stopwatch.StartNew();
 
         for (var iteration = 0; iteration < MaxIterations; iteration++)
         {
@@ -41,12 +45,16 @@ public sealed class AgentRunner : IAgentRunner
                 "[{Agent}] Iteration {Iteration}: sending {MessageCount} messages, {ToolCount} tools",
                 agent.Name, iteration + 1, conversation.Count, tools.Count);
 
-            var result = await _chatService.CompleteAsync(conversation, tools, cancellationToken: cancellationToken);
+            var result = await _chatService.CompleteAsync(conversation, tools, model, cancellationToken);
+
+            if (result.Metrics is not null)
+                steps.Add(result.Metrics);
 
             if (!result.IsToolCall)
             {
                 // Final text response — done.
-                return result.Text ?? string.Empty;
+                totalSw.Stop();
+                return new CompletionResponse(result.Text ?? string.Empty, totalSw.Elapsed, steps);
             }
 
             // Add the assistant message with tool calls to the conversation.
@@ -87,7 +95,11 @@ public sealed class AgentRunner : IAgentRunner
             }
         }
 
+        totalSw.Stop();
         _logger.LogWarning("[{Agent}] Reached max iterations ({Max}) without a text response", agent.Name, MaxIterations);
-        return "[Agent reached maximum tool-call iterations without producing a final response.]";
+        return new CompletionResponse(
+            "[Agent reached maximum tool-call iterations without producing a final response.]",
+            totalSw.Elapsed,
+            steps);
     }
 }
