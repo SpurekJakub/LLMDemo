@@ -60,6 +60,7 @@ public sealed class LmStudioChatCompletionService : IChatCompletionService
             resolvedModel,
             tools.Count);
 
+        var requestedAt = DateTimeOffset.UtcNow;
         var sw = Stopwatch.StartNew();
         ChatCompletion completion;
 
@@ -82,8 +83,11 @@ public sealed class LmStudioChatCompletionService : IChatCompletionService
         }
 
         sw.Stop();
+        var respondedAt = DateTimeOffset.UtcNow;
 
         var metrics = new CompletionMetrics(
+            RequestedAt: requestedAt,
+            RespondedAt: respondedAt,
             Duration: sw.Elapsed,
             PromptTokens: completion.Usage?.InputTokenCount,
             CompletionTokens: completion.Usage?.OutputTokenCount,

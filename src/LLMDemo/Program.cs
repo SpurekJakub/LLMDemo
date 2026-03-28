@@ -146,6 +146,8 @@ while (true)
         var table = new Table()
             .Border(TableBorder.Rounded)
             .AddColumn("[grey]Step[/]")
+            .AddColumn("[grey]Requested At[/]")
+            .AddColumn("[grey]Responded At[/]")
             .AddColumn("[grey]Duration[/]")
             .AddColumn("[grey]Prompt tokens[/]")
             .AddColumn("[grey]Completion tokens[/]")
@@ -156,6 +158,8 @@ while (true)
             var s = response.Steps[i];
             table.AddRow(
                 $"[grey]{i + 1}[/]",
+                $"[grey]{s.RequestedAt.ToLocalTime():HH:mm:ss.fff}[/]",
+                $"[grey]{s.RespondedAt.ToLocalTime():HH:mm:ss.fff}[/]",
                 $"[grey]{s.Duration.TotalMilliseconds:F0} ms[/]",
                 $"[grey]{s.PromptTokens?.ToString() ?? "-"}[/]",
                 $"[grey]{s.CompletionTokens?.ToString() ?? "-"}[/]",
