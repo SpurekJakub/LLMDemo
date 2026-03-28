@@ -3,8 +3,9 @@
 ##
 ## Get latest from `dotnet new gitignore`
 
-# OpenCode data directory
-.opencode/
+# OpenCode runtime data (keep agents, commands, skills tracked)
+.opencode/logs/
+.opencode/state/
 
 # dotenv files
 .env
