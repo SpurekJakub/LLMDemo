@@ -25,15 +25,38 @@ Read `README.md` at the repo root whenever you need to understand the solution a
 
 ## Git Workflow
 
+- **Never commit directly to `master`, `develop`, or `main`.** Always work on a feature branch.
 - When starting a new concept demo, create a branch: `concept/<name>` (e.g. `concept/basic-chat`).
 - For other work, use: `feature/<description>` or `fix/<description>`.
 - **After implementing changes that compile and pass tests, commit immediately** with a clear, descriptive message. Do not batch unrelated changes into one commit.
 - Keep commits focused: one logical change per commit.
 
+## Worktree & Branch Lifecycle
+
+Follow this workflow at the **start and end of every conversation**. Load the `git-worktree` skill for full details.
+
+### At conversation start
+
+1. Run `git branch --show-current`.
+2. If you are on `master`, `main`, or `develop` — **create a new branch immediately** before making any file changes:
+   ```bash
+   git checkout -b <branch-type>/<short-description>
+   ```
+3. If already on a feature/concept/fix branch, confirm it and proceed.
+
+### At conversation end
+
+When the task is complete and all changes are committed, **always ask the user**:
+
+> "All changes are committed on branch `<branch>`. Would you like me to merge this into `develop` (or `master`)?"
+
+If yes, perform the merge. If the session is in a linked worktree, also offer to clean it up with `git worktree remove`.
+
 ## Available Skills
 
 Use the project skills for detailed procedures:
 
+- **git-worktree** — Git worktree workflow for parallel agent isolation.
 - **add-concept-demo** — Step-by-step scaffold for new `LLMDemo.Concept.*` projects.
 - **project-context** — Architecture overview, key abstractions, how projects relate.
 - **lm-studio-config** — Endpoint configuration, model setup, troubleshooting.

@@ -7,7 +7,8 @@ public enum MessageRole
 {
     System,
     User,
-    Assistant
+    Assistant,
+    Tool
 }
 
 /// <summary>

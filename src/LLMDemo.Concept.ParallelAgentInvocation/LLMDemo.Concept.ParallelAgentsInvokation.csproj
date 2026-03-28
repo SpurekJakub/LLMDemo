@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\LLMDemo.Core\LLMDemo.Core.csproj" />
+  </ItemGroup>
+</Project>

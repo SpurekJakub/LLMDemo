@@ -4,7 +4,6 @@ namespace LLMDemo.Core.Models;
 /// Lightweight wrapper around a chat completion result.
 /// </summary>
 public sealed record CompletionResult(
-    string Content,
-    string? Model,
-    int PromptTokens,
-    int CompletionTokens);
+    string? Text,
+    List<ToolCallInfo> ToolCalls = null!);
+
