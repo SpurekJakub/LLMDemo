@@ -44,11 +44,13 @@ public sealed class InvokeSubAgentsTool : ITool
 
     private readonly IAgentRunner _agentRunner;
     private readonly IReadOnlyDictionary<string, AgentDefinition> _subAgents;
+    private readonly string _model;
 
-    public InvokeSubAgentsTool(IAgentRunner agentRunner, IReadOnlyDictionary<string, AgentDefinition> subAgents)
+    public InvokeSubAgentsTool(IAgentRunner agentRunner, IReadOnlyDictionary<string, AgentDefinition> subAgents, string model)
     {
         _agentRunner = agentRunner;
         _subAgents = subAgents;
+        _model = model;
     }
 
     public async Task<string> InvokeAsync(string argumentsJson, CancellationToken cancellationToken = default)
@@ -80,8 +82,8 @@ public sealed class InvokeSubAgentsTool : ITool
 
         try
         {
-            var response = await _agentRunner.RunAsync(agentDef, prompt, cancellationToken);
-            return new AgentResult(agentName, response, null);
+            var response = await _agentRunner.RunAsync(agentDef, prompt, _model, cancellationToken);
+            return new AgentResult(agentName, response.Text, null);
         }
         catch (Exception ex)
         {

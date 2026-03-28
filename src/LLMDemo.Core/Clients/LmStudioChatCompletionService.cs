@@ -1,4 +1,6 @@
 using System.ClientModel;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using LLMDemo.Core.Abstractions;
 using LLMDemo.Core.Configuration;
 using LLMDemo.Core.Models;
@@ -14,9 +16,10 @@ namespace LLMDemo.Core.Clients;
 /// </summary>
 public sealed class LmStudioChatCompletionService : IChatCompletionService
 {
-    private readonly ChatClient _chatClient;
     private readonly LmStudioOptions _options;
     private readonly ILogger<LmStudioChatCompletionService> _logger;
+    private readonly OpenAIClient _openAiClient;
+    private readonly ConcurrentDictionary<string, ChatClient> _clientCache = new(StringComparer.OrdinalIgnoreCase);
 
     public LmStudioChatCompletionService(IOptions<LmStudioOptions> options, ILogger<LmStudioChatCompletionService> logger)
     {
@@ -26,10 +29,7 @@ public sealed class LmStudioChatCompletionService : IChatCompletionService
         // LM Studio doesn't require an API key — use a dummy value.
         var credential = new ApiKeyCredential("lm-studio");
         var clientOptions = new OpenAIClientOptions { Endpoint = _options.Endpoint };
-        var openAiClient = new OpenAIClient(credential, clientOptions);
-
-        var modelId = _options.DefaultModel ?? "default";
-        _chatClient = openAiClient.GetChatClient(modelId);
+        _openAiClient = new OpenAIClient(credential, clientOptions);
     }
 
     /// <inheritdoc/>
@@ -46,14 +46,21 @@ public sealed class LmStudioChatCompletionService : IChatCompletionService
         string? model = null,
         CancellationToken cancellationToken = default)
     {
+        var resolvedModel = model ?? _options.DefaultModel
+            ?? throw new InvalidOperationException(
+                "No model specified. Pass a model parameter or set LmStudio:DefaultModel in appsettings.");
+
+        var chatClient = _clientCache.GetOrAdd(resolvedModel, m => _openAiClient.GetChatClient(m));
+
         var chatMessages = BuildChatMessages(messages);
 
         _logger.LogDebug(
             "Sending {Count} messages to LM Studio (model: {Model}, tools: {ToolCount})",
             messages.Count,
-            model ?? _options.DefaultModel ?? "default",
+            resolvedModel,
             tools.Count);
 
+        var sw = Stopwatch.StartNew();
         ChatCompletion completion;
 
         if (tools.Count > 0)
@@ -67,12 +74,20 @@ public sealed class LmStudioChatCompletionService : IChatCompletionService
             foreach (var tool in chatTools)
                 completionOptions.Tools.Add(tool);
 
-            completion = await _chatClient.CompleteChatAsync(chatMessages, completionOptions, cancellationToken);
+            completion = await chatClient.CompleteChatAsync(chatMessages, completionOptions, cancellationToken);
         }
         else
         {
-            completion = await _chatClient.CompleteChatAsync(chatMessages, cancellationToken: cancellationToken);
+            completion = await chatClient.CompleteChatAsync(chatMessages, cancellationToken: cancellationToken);
         }
+
+        sw.Stop();
+
+        var metrics = new CompletionMetrics(
+            Duration: sw.Elapsed,
+            PromptTokens: completion.Usage?.InputTokenCount,
+            CompletionTokens: completion.Usage?.OutputTokenCount,
+            TotalTokens: completion.Usage?.TotalTokenCount);
 
         // Tool-call response
         if (completion.FinishReason == ChatFinishReason.ToolCalls)
@@ -82,12 +97,12 @@ public sealed class LmStudioChatCompletionService : IChatCompletionService
                 .ToList();
 
             _logger.LogDebug("LLM requested {Count} tool call(s)", toolCalls.Count);
-            return new CompletionResult(null, toolCalls);
+            return new CompletionResult(null, toolCalls, metrics);
         }
 
         // Normal text response
         var text = completion.Content.Count > 0 ? completion.Content[0].Text : string.Empty;
-        return new CompletionResult(text);
+        return new CompletionResult(text, null, metrics);
     }
 
     private static List<ChatMessage> BuildChatMessages(IReadOnlyList<ConversationMessage> messages)

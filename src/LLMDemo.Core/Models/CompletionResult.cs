@@ -6,7 +6,8 @@ namespace LLMDemo.Core.Models;
 /// </summary>
 public sealed record CompletionResult(
     string? Text,
-    IReadOnlyList<ToolCallInfo>? ToolCalls = null)
+    IReadOnlyList<ToolCallInfo>? ToolCalls = null,
+    CompletionMetrics? Metrics = null)
 {
     /// <summary>True when the LLM responded with one or more tool calls instead of text.</summary>
     public bool IsToolCall => ToolCalls is { Count: > 0 };
