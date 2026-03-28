@@ -146,6 +146,7 @@ while (true)
         var table = new Table()
             .Border(TableBorder.Rounded)
             .AddColumn("[grey]Step[/]")
+            .AddColumn("[grey]Agent[/]")
             .AddColumn("[grey]Requested At[/]")
             .AddColumn("[grey]Responded At[/]")
             .AddColumn("[grey]Duration[/]")
@@ -158,6 +159,7 @@ while (true)
             var s = response.Steps[i];
             table.AddRow(
                 $"[grey]{i + 1}[/]",
+                $"[grey]{Markup.Escape(s.AgentName)}[/]",
                 $"[grey]{s.RequestedAt.ToLocalTime():HH:mm:ss.fff}[/]",
                 $"[grey]{s.RespondedAt.ToLocalTime():HH:mm:ss.fff}[/]",
                 $"[grey]{s.Duration.TotalMilliseconds:F0} ms[/]",

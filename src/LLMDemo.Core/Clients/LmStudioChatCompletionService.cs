@@ -86,6 +86,7 @@ public sealed class LmStudioChatCompletionService : IChatCompletionService
         var respondedAt = DateTimeOffset.UtcNow;
 
         var metrics = new CompletionMetrics(
+            AgentName: string.Empty,   // will be overwritten by AgentRunner with the actual agent name
             RequestedAt: requestedAt,
             RespondedAt: respondedAt,
             Duration: sw.Elapsed,
