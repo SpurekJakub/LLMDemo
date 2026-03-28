@@ -31,4 +31,7 @@ var selected = AnsiConsole.Prompt(
         .AddChoices(demos));
 
 AnsiConsole.MarkupLine($"\n[bold]Running:[/] {selected.Name}\n");
+var swDemo = System.Diagnostics.Stopwatch.StartNew();
 await selected.RunAsync();
+swDemo.Stop();
+AnsiConsole.MarkupLine($"[green]Demo finished in {swDemo.ElapsedMilliseconds} ms.[/] ");
