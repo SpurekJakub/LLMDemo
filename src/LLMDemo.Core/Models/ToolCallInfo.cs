@@ -1,3 +1,6 @@
 namespace LLMDemo.Core.Models;
 
-public sealed record ToolCallInfo(string Name, string ArgumentsJson, string? ResultJson = null);
+/// <summary>
+/// Represents a single tool-call requested by the LLM in an assistant message.
+/// </summary>
+public sealed record ToolCallInfo(string Id, string Name, string ArgumentsJson, string? ResultJson = null);
