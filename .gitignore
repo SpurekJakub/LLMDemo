@@ -7,6 +7,10 @@
 .opencode/logs/
 .opencode/state/
 
+# Storage for copilot plans
+.plan
+.plans/
+
 # dotenv files
 .env
 
