@@ -13,4 +13,14 @@ public interface IChatCompletionService
         IReadOnlyList<ConversationMessage> messages,
         string? model = null,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Send a conversation with available tools and get a completion back.
+    /// The result may contain tool-call requests instead of a text reply.
+    /// </summary>
+    Task<CompletionResult> CompleteAsync(
+        IReadOnlyList<ConversationMessage> messages,
+        IReadOnlyList<ToolDefinition> tools,
+        string? model = null,
+        CancellationToken cancellationToken = default);
 }

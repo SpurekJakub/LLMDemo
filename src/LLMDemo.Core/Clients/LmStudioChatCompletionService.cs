@@ -32,28 +32,103 @@ public sealed class LmStudioChatCompletionService : IChatCompletionService
         _chatClient = openAiClient.GetChatClient(modelId);
     }
 
-    public async Task<CompletionResult> CompleteAsync(
+    /// <inheritdoc/>
+    public Task<CompletionResult> CompleteAsync(
         IReadOnlyList<ConversationMessage> messages,
         string? model = null,
         CancellationToken cancellationToken = default)
+        => CompleteAsync(messages, [], model, cancellationToken);
+
+    /// <inheritdoc/>
+    public async Task<CompletionResult> CompleteAsync(
+        IReadOnlyList<ConversationMessage> messages,
+        IReadOnlyList<ToolDefinition> tools,
+        string? model = null,
+        CancellationToken cancellationToken = default)
     {
-        var chatMessages = new List<ChatMessage>(messages.Count);
-        foreach (var msg in messages)
+        var chatMessages = BuildChatMessages(messages);
+
+        _logger.LogDebug(
+            "Sending {Count} messages to LM Studio (model: {Model}, tools: {ToolCount})",
+            messages.Count,
+            model ?? _options.DefaultModel ?? "default",
+            tools.Count);
+
+        ChatCompletion completion;
+
+        if (tools.Count > 0)
         {
-            chatMessages.Add(msg.Role switch
-            {
-                MessageRole.System => ChatMessage.CreateSystemMessage(msg.Content),
-                MessageRole.User => ChatMessage.CreateUserMessage(msg.Content),
-                MessageRole.Assistant => ChatMessage.CreateAssistantMessage(msg.Content),
-                _ => ChatMessage.CreateUserMessage(msg.Content),
-            });
+            var chatTools = tools.Select(t => ChatTool.CreateFunctionTool(
+                t.Name,
+                t.Description,
+                BinaryData.FromString(t.ParametersSchema))).ToList();
+
+            var completionOptions = new ChatCompletionOptions();
+            foreach (var tool in chatTools)
+                completionOptions.Tools.Add(tool);
+
+            completion = await _chatClient.CompleteChatAsync(chatMessages, completionOptions, cancellationToken);
+        }
+        else
+        {
+            completion = await _chatClient.CompleteChatAsync(chatMessages, cancellationToken: cancellationToken);
         }
 
-        var sw = System.Diagnostics.Stopwatch.StartNew();
-_logger.LogDebug("Sending {Count} messages to LM Studio (model: {Model})", messages.Count, model ?? _options.DefaultModel ?? "default");
+        // Tool-call response
+        if (completion.FinishReason == ChatFinishReason.ToolCalls)
+        {
+            var toolCalls = completion.ToolCalls
+                .Select(tc => new ToolCallInfo(tc.Id, tc.FunctionName, tc.FunctionArguments.ToString()))
+                .ToList();
 
-        ChatCompletion completion = await _chatClient.CompleteChatAsync(chatMessages, cancellationToken: cancellationToken);
+            _logger.LogDebug("LLM requested {Count} tool call(s)", toolCalls.Count);
+            return new CompletionResult(null, toolCalls);
+        }
 
-        return new CompletionResult(completion.Content[0].Text, new List<ToolCallInfo>());
+        // Normal text response
+        var text = completion.Content.Count > 0 ? completion.Content[0].Text : string.Empty;
+        return new CompletionResult(text);
+    }
+
+    private static List<ChatMessage> BuildChatMessages(IReadOnlyList<ConversationMessage> messages)
+    {
+        var chatMessages = new List<ChatMessage>(messages.Count);
+
+        foreach (var msg in messages)
+        {
+            switch (msg.Role)
+            {
+                case MessageRole.System:
+                    chatMessages.Add(ChatMessage.CreateSystemMessage(msg.Content));
+                    break;
+
+                case MessageRole.User:
+                    chatMessages.Add(ChatMessage.CreateUserMessage(msg.Content));
+                    break;
+
+                case MessageRole.Assistant when msg.ToolCalls is { Count: > 0 }:
+                    // Assistant message that requested tool calls
+                    var assistantMsg = ChatMessage.CreateAssistantMessage(
+                        msg.ToolCalls.Select(tc =>
+                            ChatToolCall.CreateFunctionToolCall(tc.Id, tc.Name, BinaryData.FromString(tc.ArgumentsJson)))
+                        .ToArray<ChatToolCall>());
+                    chatMessages.Add(assistantMsg);
+                    break;
+
+                case MessageRole.Assistant:
+                    chatMessages.Add(ChatMessage.CreateAssistantMessage(msg.Content));
+                    break;
+
+                case MessageRole.Tool:
+                    chatMessages.Add(ChatMessage.CreateToolMessage(msg.ToolCallId!, msg.Content));
+                    break;
+
+                default:
+                    chatMessages.Add(ChatMessage.CreateUserMessage(msg.Content));
+                    break;
+            }
+        }
+
+        return chatMessages;
     }
 }

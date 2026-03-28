@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LLMDemo.Core\LLMDemo.Core.csproj" />
+    <ProjectReference Include="..\LLMDemo.Concept.ParallelAgentInvocation\LLMDemo.Concept.ParallelAgentInvocation.csproj" />
   </ItemGroup>
 
 </Project>

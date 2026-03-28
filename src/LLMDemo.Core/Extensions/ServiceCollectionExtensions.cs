@@ -1,6 +1,7 @@
 using LLMDemo.Core.Abstractions;
 using LLMDemo.Core.Clients;
 using LLMDemo.Core.Configuration;
+using LLMDemo.Core.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace LLMDemo.Core.Extensions;
@@ -8,8 +9,8 @@ namespace LLMDemo.Core.Extensions;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers LLMDemo.Core services: LmStudioOptions binding and IChatCompletionService
-    /// backed by LM Studio.
+    /// Registers LLMDemo.Core services: LmStudioOptions binding, IChatCompletionService
+    /// backed by LM Studio, and IAgentRunner.
     /// </summary>
     public static IServiceCollection AddLlmDemoCore(
         this IServiceCollection services,
@@ -25,6 +26,7 @@ public static class ServiceCollectionExtensions
         optionsBuilder.ValidateOnStart();
 
         services.AddSingleton<IChatCompletionService, LmStudioChatCompletionService>();
+        services.AddTransient<IAgentRunner, AgentRunner>();
 
         return services;
     }
