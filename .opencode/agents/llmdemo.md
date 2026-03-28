@@ -1,7 +1,7 @@
 ---
 description: "LLMDemo development assistant. Creates isolated worktrees, implements changes, and opens PRs."
 mode: primary
-model: lmstudio/openai/gpt-oss-20b
+model: lmstudio/qwen/qwen3-coder-30b
 permission:
   bash:
     "*": allow
