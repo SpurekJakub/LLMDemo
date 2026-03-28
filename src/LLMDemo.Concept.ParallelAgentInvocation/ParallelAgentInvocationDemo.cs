@@ -11,6 +11,7 @@ public sealed class ParallelAgentInvocationDemo : IChatConceptDemo
 {
     public string Name => "Parallel Agent Invocation";
     public string Description => "Orchestrator agent that invokes sub-agents in parallel via tool-calling";
+    public string? DefaultPrompt => "Tell me 5 jokes";
 
     private readonly IAgentRunner _orchestratorRunner;
     private readonly AgentDefinition _orchestratorAgent;

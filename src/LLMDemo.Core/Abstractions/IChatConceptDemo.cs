@@ -7,6 +7,13 @@ namespace LLMDemo.Core.Abstractions;
 public interface IChatConceptDemo : IConceptDemo
 {
     /// <summary>
+    /// Optional default prompt pre-filled for the user on the first turn.
+    /// The user can edit or clear it before submitting.
+    /// Return <c>null</c> to start with an empty input.
+    /// </summary>
+    string? DefaultPrompt => null;
+
+    /// <summary>
     /// Process a single user message and return the assistant's reply.
     /// </summary>
     Task<string> ProcessMessageAsync(string userMessage, CancellationToken cancellationToken = default);

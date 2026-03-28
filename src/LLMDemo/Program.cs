@@ -38,11 +38,21 @@ if (selected is IChatConceptDemo chatDemo)
     // Interactive chat loop
     AnsiConsole.MarkupLine("[grey]Type your message and press Enter. Type [bold]exit[/] or [bold]quit[/] to stop.[/]\n");
 
+    var defaultPrompt = chatDemo.DefaultPrompt;
+
     while (true)
     {
-        var userInput = AnsiConsole.Prompt(
-            new TextPrompt<string>("[blue]You:[/]")
-                .AllowEmpty());
+        var prompt = new TextPrompt<string>("[blue]You:[/]")
+            .AllowEmpty();
+
+        // Pre-fill the default prompt (only for the very first turn if set)
+        if (defaultPrompt is not null)
+        {
+            prompt.DefaultValue(defaultPrompt).ShowDefaultValue(false);
+            defaultPrompt = null; // only pre-fill once
+        }
+
+        var userInput = AnsiConsole.Prompt(prompt);
 
         if (string.IsNullOrWhiteSpace(userInput))
             continue;
