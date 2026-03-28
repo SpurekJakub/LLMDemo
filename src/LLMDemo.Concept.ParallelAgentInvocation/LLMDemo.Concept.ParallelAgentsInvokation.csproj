@@ -1,4 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputPath>../artifacts/</OutputPath>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\LLMDemo.Core\LLMDemo.Core.csproj" />
   </ItemGroup>

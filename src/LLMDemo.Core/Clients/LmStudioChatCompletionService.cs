@@ -49,14 +49,11 @@ public sealed class LmStudioChatCompletionService : IChatCompletionService
             });
         }
 
-        _logger.LogDebug("Sending {Count} messages to LM Studio (model: {Model})", messages.Count, model ?? _options.DefaultModel ?? "default");
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+_logger.LogDebug("Sending {Count} messages to LM Studio (model: {Model})", messages.Count, model ?? _options.DefaultModel ?? "default");
 
         ChatCompletion completion = await _chatClient.CompleteChatAsync(chatMessages, cancellationToken: cancellationToken);
 
-        return new CompletionResult(
-            Content: completion.Content[0].Text,
-            Model: completion.Model,
-            PromptTokens: completion.Usage.InputTokenCount,
-            CompletionTokens: completion.Usage.OutputTokenCount);
+        return new CompletionResult(completion.Content[0].Text, new List<ToolCallInfo>());
     }
 }
