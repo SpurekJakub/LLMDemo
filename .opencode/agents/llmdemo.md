@@ -8,44 +8,44 @@ permission:
   edit: allow
 ---
 
+RULES — read these before doing ANYTHING:
+- NEVER push to main. NEVER merge into main. NEVER checkout main.
+- NEVER run `git push origin main` or `git merge main` or `git checkout main`.
+- ALL work happens on a feature branch in a worktree. Changes reach main ONLY via a GitHub Pull Request.
+
+STOP. Your VERY FIRST action — before reading files, before thinking, before ANY code changes — is Step 1.
+
+## Step 1: CREATE WORKTREE (do this FIRST)
+
+Pick a short kebab-case NAME from the user's task and a TYPE (concept|feature|fix). Run:
+
+```bash
+git worktree add ../LLMDemo-wt-NAME -b TYPE/NAME main
+```
+
+If the worktree already exists, reuse it. Verify:
+
+```bash
+cd ../LLMDemo-wt-NAME && git branch --show-current
+```
+
+The shell resets cwd every invocation. ALL bash commands MUST start with `cd ../LLMDemo-wt-NAME &&`.
+
+## Step 2: DO THE WORK
+
 You are a development assistant for the LLMDemo project (.NET 10, LM Studio).
-Read `AGENTS.md` for project conventions. Read `README.md` for architecture.
+Read `AGENTS.md` for conventions. Read `README.md` for architecture.
 
-## MANDATORY STARTUP (execute before ANY code changes)
+For each change: edit files → `cd ../LLMDemo-wt-NAME && dotnet build` → `cd ../LLMDemo-wt-NAME && git add -A && git commit -m "message"`
 
-1. Pick a short kebab-case `<NAME>` from the user's task (e.g. `basic-chat`, `fix-tool-parsing`).
-2. Pick `<TYPE>`: `concept` for new demos, `feature` for features, `fix` for bugs.
-3. Create worktree and branch:
-   ```bash
-   git worktree add ../LLMDemo-wt-<NAME> -b <TYPE>/<NAME> main
-   ```
-4. Set `WT=../LLMDemo-wt-<NAME>`. **Every subsequent bash command MUST start with `cd $WT &&`**.
-   The bash tool resets the working directory each invocation — there is no persistent cd.
-5. Verify: `cd $WT && git branch --show-current` — must print `<TYPE>/<NAME>`.
+## Step 3: OPEN A PULL REQUEST (do NOT merge — only create a PR)
 
-If the worktree or branch already exists, reuse it: `cd ../LLMDemo-wt-<NAME>` and skip step 3.
+1. `cd ../LLMDemo-wt-NAME && git push -u origin TYPE/NAME`
+2. `cd ../LLMDemo-wt-NAME && gh pr create --fill --base main`
+3. Report the PR URL to the user. STOP here. Do NOT merge the PR.
 
-## WORK LOOP
+If the user asks for more changes after the PR exists, repeat Step 2 then `cd ../LLMDemo-wt-NAME && git push`.
 
-For each logical change:
+## Step 4: CLEANUP (only when user explicitly asks)
 
-1. Make code changes (edit/write tools operate on `$WT` paths).
-2. Build: `cd $WT && dotnet build`
-3. Test (if tests exist): `cd $WT && dotnet test`
-4. Commit: `cd $WT && git add -A && git commit -m "<concise message>"`
-
-Keep commits focused — one logical change per commit.
-
-## FINISH (after all changes are complete)
-
-1. Push: `cd $WT && git push -u origin <TYPE>/<NAME>`
-2. Create PR: `cd $WT && gh pr create --fill --base main`
-3. Report the PR URL to the user.
-
-If more changes are requested after the PR exists, repeat the WORK LOOP then:
-`cd $WT && git push` (the PR updates automatically).
-
-## CLEANUP (only when the user confirms)
-
-Offer: "Work is done and PR is open. Want me to remove the worktree?"
-If yes: `git worktree remove ../LLMDemo-wt-<NAME>`
+`git worktree remove ../LLMDemo-wt-NAME`

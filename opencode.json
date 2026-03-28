@@ -8,17 +8,17 @@
         "baseURL": "http://127.0.0.1:1234/v1"
       },
       "models": {
-        "openai/gpt-oss-20b": {
-          "name": "GPT-OSS 20B (local)",
-          "limit": {
-            "context": 32000,
-            "output": 8000
-          }
-        }
+"qwen/qwen3-coder-30b": {
+      "name": "Qwen 3 Coder 30B (local)",
+      "limit": {
+        "context": 40960,
+        "output": 8192
+      }
+    }
       }
     }
   },
-  "model": "lmstudio/openai/gpt-oss-20b",
+  "model": "lmstudio/qwen/qwen3-coder-30b",
   "permission": "allow",
   "disabled_providers": ["anthropic", "openai"],
   "autoupdate": false,
